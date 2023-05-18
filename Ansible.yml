@@ -1,0 +1,84 @@
+---
+
+# define these vars:
+#  mongodb_version: '5.0'
+#  mongodb_version_min: '5.0.17'
+#  mongodb_user: 'mongodb'
+#  mongodb_user_id: '1200'
+#  mongodb_path_data: '/var/local/lib/mongodb'
+
+- name: MongoDB | Adding service-user
+  ansible.builtin.user:
+    name: "{{ mongodb_user }}"
+    uid: "{{ mongodb_user_id }}"
+
+- name: MongoDB | Creating build-directory
+  ansible.builtin.file:
+    path: '/etc/containers/build_mongodb'
+    state: directory
+    mode: 075ß
+    owner: 'root'
+    group: 'docker'
+
+- name: MongoDB | Download Build-Files
+  ansible.builtin.unarchive:
+    src: 'https://github.com/docker-library/mongo/archive/refs/heads/master.zip'
+    remote_src: true
+    dest: '/etc/containers/build_mongodb/'
+    mode: 0750
+    owner: 'root'
+    group: 'docker'
+
+- name: MongoDB | Patch Build-Files (UID/GID/VERSION)
+  ansible.builtin.replace:
+    path: "{{ OPNCC.path.config.compose }}/build_{{ item.p }}"
+    regexp: "{{ item.s }}"
+    replace: "{{ item.r }}"
+  with_items:
+    - {p: "mongodb/mongo-master/{{ mongodb_version }}/Dockerfile", s: ' 999 ', r: " {{ mongodb_user_id }} "}
+    - {p: "mongodb/mongo-master/{{ mongodb_version }}/Dockerfile", s: '^ENV MONGO_VERSION.*$ ', r: "ENV MONGO_VERSION {{ mongodb_version_min }}"}
+    - {p: "mongodb/mongo-master/{{ mongodb_version }}/Dockerfile", s: ' keyserver.ubuntu.com ', r: ' hkp://keyserver.ubuntu.com:80 '}
+    - {p: "mongodb/mongo-master/{{ mongodb_version }}/Dockerfile",
+       s: 'COPY docker-entrypoint\.sh \/usr\/local\/bin\/\nENTRYPOINT \["docker-entrypoint\.sh"\]',
+       r: 'COPY docker-entrypoint.sh /usr/local/bin/\nRUN chmod 775 /usr/local/bin/docker-entrypoint.sh\nENTRYPOINT ["docker-entrypoint.sh"]'}
+
+- name: MongoDB | Copying docker-compose config
+  ansible.builtin.copy:
+    dest: '/etc/containers/mongodb.yml'
+    mode: 0640
+    owner: 'root'
+    group: 'docker'
+    content: |
+      ---
+      # ansible_managed
+
+      version: '3'
+      
+      networks:
+        mongodb:
+          driver: bridge
+          external: false
+          ipam:
+            driver: default
+            config:
+            - subnet: '192.168.0.0/24'
+      
+      services:
+        mongodb:
+          image: 'local/mongodb:{{ mongodb_version_min }}'
+          build:
+            context: '/etc/containers/build_mongodb//mongo-master/{{ mongodb_version }}/'
+            dockerfile: '/etc/containers/build_mongodb/mongo-master/{{ mongodb_version }}/Dockerfile'
+          container_name: 'mongodb'
+          user: '{{ mongodb_user_id }}:{{ mongodb_user_id }}'
+          environment:
+            UID: {{ mongodb_user_id }}
+            GID: {{mongodb_user_id }}
+          volumes:
+            - '{{ mongodb_path_data }}:/data/db'
+          restart: 'always'
+          networks:
+            - 'mongodb'
+
+- name: MongoDB | Running docker-compose & building image locally
+  ansible.builtin.command: '/usr/local/bin/docker-compose -f /etc/containers/mongodb.yml up'
