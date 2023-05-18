@@ -16,7 +16,7 @@
   ansible.builtin.file:
     path: '/etc/containers/build_mongodb'
     state: directory
-    mode: 075ß
+    mode: 0750
     owner: 'root'
     group: 'docker'
 
