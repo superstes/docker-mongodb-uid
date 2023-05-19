@@ -9,5 +9,5 @@ The default image uses the hardcoded UID/GID 999..
 ## Covered here
 
 - [Ansible + docker-compose](https://github.com/superstes/docker-mongodb-uid/blob/main/Ansible.yml)
-- [Bash + docker uild](https://github.com/superstes/docker-mongodb-uid/blob/main/Bash+docker-build.sh)
+- [Bash + docker build](https://github.com/superstes/docker-mongodb-uid/blob/main/Bash+docker-build.sh)
 - [Bash + docker-compose](https://github.com/superstes/docker-mongodb-uid/blob/main/Bash+docker-compose.sh)
