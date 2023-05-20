@@ -49,7 +49,7 @@
 
 - name: MongoDB | Copying docker-compose config
   ansible.builtin.templates:
-    src: 'docker-compose.yml'
+    src: 'Rebuild_docker-compose.yml'
     dest: "{{ mongodb_compose_file }}"
     mode: 0640
     owner: 'root'

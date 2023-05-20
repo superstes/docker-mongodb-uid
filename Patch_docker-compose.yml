@@ -1,0 +1,33 @@
+---
+
+# for use with bash replace these:
+#  mongodb_version_min: '5.0.17'
+#  mongodb_user: 'mongodb'
+#  mongodb_user_id: '1200'
+#  mongodb_path_data: '/var/local/lib/mongodb'
+#  mongodb_patch_file: '/etc/containers/mongodb_dockerfile'
+
+version: '3'
+
+networks:
+  mongodb:
+    driver: bridge
+    external: false
+    ipam:
+      driver: default
+      config:
+      - subnet: '192.168.0.0/24'
+
+services:
+  mongodb:
+    image: 'local/mongodb:{{ mongodb_version_min }}'
+    build:
+      context: .
+      dockerfile: '{{ mongodb_patch_file }}'
+    container_name: 'mongodb'
+    user: '{{ mongodb_user_id }}:{{ mongodb_user_id }}'
+    volumes:
+      - '{{ mongodb_path_data }}:/data/db'
+    restart: 'always'
+    networks:
+      - 'mongodb'

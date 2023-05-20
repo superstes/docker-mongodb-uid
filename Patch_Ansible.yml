@@ -1,0 +1,37 @@
+---
+
+# define these vars:
+#  mongodb_version_min: '5.0.17'
+#  mongodb_user: 'mongodb'
+#  mongodb_user_id: '1200'
+#  mongodb_path_data: '/var/local/lib/mongodb'
+
+- name: MongoDB | Vars
+  ansible.builtin.set_fact:
+    mongodb_patch_file: '/etc/containers/mongodb_dockerfile'
+    mongodb_compose_file: '/etc/containers/mongodb.yml'
+
+- name: MongoDB | Adding service-user
+  ansible.builtin.user:
+    name: "{{ mongodb_user }}"
+    uid: "{{ mongodb_user_id }}"
+
+- name: MongoDB | Copying patch-dockerfile
+  ansible.builtin.templates:
+    src: 'Patch_Dockerfile'
+    dest: "{{ mongodb_compose_file }}"
+    mode: 0640
+    owner: 'root'
+    group: 'docker'
+
+- name: MongoDB | Copying docker-compose config
+  ansible.builtin.templates:
+    src: 'Patch_docker-compose.yml'
+    dest: "{{ mongodb_compose_file }}"
+    mode: 0640
+    owner: 'root'
+    group: 'docker'
+
+# NOTE: could use community.docker.docker_compose
+- name: MongoDB | Running docker-compose & building image locally
+  ansible.builtin.command: "docker-compose -f {{ mongodb_compose_file }} up"

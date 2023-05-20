@@ -12,8 +12,8 @@ set -euo pipefail
 
 build_dir='/etc/containers/build_mongodb'
 
-groupadd --gid "$mongodb_user_id" mongodb
-useradd --gid "$mongodb_user_id" --gid mongodb mongodb
+groupadd --gid "$mongodb_user_id" "$mongodb_user"
+useradd --gid "$mongodb_user_id" --gid "$mongodb_user" "$mongodb_user"
 
 mkdir -p "$build_dir"
 

@@ -1,0 +1,8 @@
+# for use with bash replace these:
+#  mongodb_version_min: '5.0.17'
+#  mongodb_user_id: '1200'
+
+FROM mongo:{{ mongodb_version_min }}
+RUN groupmod --gid {{ mongodb_user_id }} mongodb; \
+	usermod --uid {{ mongodb_user_id }} mongodb; \
+	chown -R mongodb:mongodb /data/db /data/configdb
