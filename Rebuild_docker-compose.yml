@@ -27,9 +27,6 @@ services:
       dockerfile: '{{ mongodb_path_build }}/mongo-master/{{ mongodb_version }}/Dockerfile'
     container_name: 'mongodb'
     user: '{{ mongodb_user_id }}:{{ mongodb_user_id }}'
-    environment:
-      UID: {{ mongodb_user_id }}
-      GID: {{mongodb_user_id }}
     volumes:
       - '{{ mongodb_path_data }}:/data/db'
     restart: 'always'
